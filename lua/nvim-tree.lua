@@ -26,9 +26,11 @@ M.on_keypress = require("nvim-tree.actions").on_keypress
 function M.toggle(find_file, no_focus)
   if view.is_visible() then
     view.close()
+    _config.close_hook()
   else
     local previous_buf = api.nvim_get_current_buf()
     M.open()
+    _config.open_hook()
     if _config.update_focused_file.enable or find_file then
       M.find_file(false, previous_buf)
     end
@@ -45,6 +47,7 @@ function M.open(cwd)
     view.focus()
   else
     lib.open(cwd)
+    _config.open_hook()
   end
 end
 
@@ -336,6 +339,16 @@ local DEFAULT_OPTS = { -- BEGIN_DEFAULT_OPTS
       },
     },
   },
+  renderer = {
+    indent_markers = {
+      enable = false,
+      icons = {
+        corner = "└ ",
+        edge = "│ ",
+        none = "  ",
+      },
+    },
+  },
   hijack_directories = {
     enable = true,
     auto_open = true,
@@ -371,6 +384,7 @@ local DEFAULT_OPTS = { -- BEGIN_DEFAULT_OPTS
     timeout = 400,
   },
   actions = {
+    use_system_clipboard = true,
     change_dir = {
       enable = true,
       global = false,
@@ -403,6 +417,8 @@ local DEFAULT_OPTS = { -- BEGIN_DEFAULT_OPTS
       profile = false,
     },
   },
+  open_hook = function () end,
+  close_hook = function () end,
 } -- END_DEFAULT_OPTS
 
 local function merge_options(conf)
@@ -445,6 +461,7 @@ function M.setup(conf)
   require("nvim-tree.git").setup(opts)
   require("nvim-tree.view").setup(opts)
   require("nvim-tree.lib").setup(opts)
+  require("nvim-tree.renderer").setup(opts)
 
   setup_vim_commands()
   setup_autocommands(opts)
